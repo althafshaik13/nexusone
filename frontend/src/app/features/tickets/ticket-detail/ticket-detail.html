@@ -1,0 +1,60 @@
+<a routerLink="/tickets" class="back-link">&larr; Back to tickets</a>
+
+@if (loading()) {
+  <p class="hint">Loading ticket…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (ticket(); as t) {
+  <article class="ticket-detail">
+    <header>
+      <h2>{{ t.subject }}</h2>
+      <span class="badge" [attr.data-status]="t.status">{{ t.status }}</span>
+    </header>
+
+    <dl>
+      <dt>Priority</dt>
+      <dd>{{ t.priority }}</dd>
+      <dt>Customer</dt>
+      <dd>{{ t.customerId }}</dd>
+      <dt>Assigned agent</dt>
+      <dd>{{ t.assignedAgentId || 'Unassigned' }}</dd>
+      <dt>SLA due</dt>
+      <dd>{{ t.slaDueAt ? (t.slaDueAt | date: 'medium') : 'Not set' }}</dd>
+      <dt>Created</dt>
+      <dd>{{ t.createdAt | date: 'medium' }}</dd>
+      <dt>Updated</dt>
+      <dd>{{ t.updatedAt | date: 'medium' }}</dd>
+    </dl>
+
+    @if (isAgent()) {
+      <div class="actions">
+        @if (canAssign()) {
+          <button type="button" (click)="assignToMe()" [disabled]="acting()">Assign to me</button>
+        }
+        @for (target of transitionTargets(); track target) {
+          <button type="button" (click)="transition(target)" [disabled]="acting()">
+            Mark {{ target }}
+          </button>
+        }
+      </div>
+    }
+
+    <p class="description">{{ t.description || 'No description provided.' }}</p>
+
+    <section class="comments">
+      <h3>Comments</h3>
+      @if (comments().length === 0) {
+        <p class="hint">No comments yet.</p>
+      } @else {
+        <ul>
+          @for (comment of comments(); track comment.id) {
+            <li>
+              <p>{{ comment.body }}</p>
+              <small>{{ comment.createdAt | date: 'medium' }} @if (comment.internal) { &middot; internal }</small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </article>
+}

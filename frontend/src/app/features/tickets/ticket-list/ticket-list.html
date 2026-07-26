@@ -1,0 +1,47 @@
+<section class="ticket-list">
+  <div class="toolbar">
+    <h2>Tickets</h2>
+    <div class="toolbar-actions">
+      @if (auth.hasRole('CUSTOMER')) {
+        <a class="new-ticket" routerLink="/tickets/new">New ticket</a>
+      }
+      <select
+        [value]="selectedStatus()"
+        (change)="onStatusChange($any($event.target).value)"
+      >
+        @for (status of statusFilters; track status) {
+          <option [value]="status">{{ status || 'All statuses' }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="hint">Loading tickets…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (tickets().length === 0) {
+    <p class="hint">No tickets found.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ticket of tickets(); track ticket.id) {
+          <tr>
+            <td><a [routerLink]="['/tickets', ticket.id]">{{ ticket.subject }}</a></td>
+            <td><span class="badge" [attr.data-status]="ticket.status">{{ ticket.status }}</span></td>
+            <td>{{ ticket.priority }}</td>
+            <td>{{ ticket.createdAt | date: 'medium' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

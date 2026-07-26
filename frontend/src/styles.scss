@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eee;
+  color: #333;
+
+  &[data-status='CREATED'] { background: #e3ecff; color: #1d4ed8; }
+  &[data-status='ASSIGNED'] { background: #fef3c7; color: #92400e; }
+  &[data-status='IN_PROGRESS'] { background: #dbeafe; color: #1e40af; }
+  &[data-status='ESCALATED'] { background: #fee2e2; color: #b91c1c; }
+  &[data-status='RESOLVED'] { background: #dcfce7; color: #166534; }
+  &[data-status='REOPENED'] { background: #fde68a; color: #92400e; }
+  &[data-status='CLOSED'] { background: #e5e7eb; color: #374151; }
+}

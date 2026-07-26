@@ -1,0 +1,34 @@
+<a routerLink="/tickets" class="back-link">&larr; Back to tickets</a>
+
+<section class="ticket-create">
+  <h2>New ticket</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Subject
+      <input type="text" formControlName="subject" placeholder="Brief summary of the issue" />
+    </label>
+
+    <label>
+      Description
+      <textarea formControlName="description" rows="5" placeholder="What happened? What did you expect?"></textarea>
+    </label>
+
+    <label>
+      Priority
+      <select formControlName="priority">
+        @for (priority of priorities; track priority) {
+          <option [value]="priority">{{ priority }}</option>
+        }
+      </select>
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="form.invalid || submitting()">
+      {{ submitting() ? 'Creating…' : 'Create ticket' }}
+    </button>
+  </form>
+</section>

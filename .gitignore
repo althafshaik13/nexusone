@@ -1,0 +1,25 @@
+# Build outputs
+target/
+dist/
+build/
+*.class
+
+# Angular / Node
+node_modules/
+.angular/
+frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
