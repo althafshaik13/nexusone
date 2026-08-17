@@ -5,7 +5,7 @@
 } @else if (error()) {
   <p class="error">{{ error() }}</p>
 } @else if (organization(); as org) {
-  <article class="organization-detail">
+  <article class="organization-detail page-fade-in">
     <header>
       <h2>{{ org.name }}</h2>
       <span class="created">Created {{ org.createdAt | date: 'medium' }}</span>

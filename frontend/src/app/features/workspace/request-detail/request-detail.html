@@ -5,7 +5,7 @@
 } @else if (error()) {
   <p class="error">{{ error() }}</p>
 } @else if (instance(); as r) {
-  <article class="request-detail">
+  <article class="request-detail page-fade-in">
     <header>
       <h2>{{ r.title }}</h2>
       <span class="badge" [attr.data-status]="r.status">{{ r.status }}</span>

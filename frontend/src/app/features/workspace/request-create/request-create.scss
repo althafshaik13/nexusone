@@ -1,7 +1,7 @@
 .back-link {
   display: inline-block;
   margin-bottom: 1rem;
-  color: #2455c9;
+  color: var(--color-primary);
   text-decoration: none;
 
   &:hover {
@@ -27,14 +27,14 @@
     flex-direction: column;
     gap: 0.35rem;
     font-weight: 600;
-    color: #333;
+    color: var(--color-text);
   }
 
   input, textarea, select {
     font: inherit;
     padding: 0.5rem 0.65rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
     font-weight: 400;
   }
 
@@ -42,24 +42,24 @@
     align-self: flex-start;
     font: inherit;
     padding: 0.55rem 1.2rem;
-    background: #2455c9;
+    background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
 
     &:disabled {
-      background: #9db4e8;
+      background: var(--color-primary-disabled);
       cursor: default;
     }
   }
 
   .hint {
-    color: #666;
+    color: var(--color-text-muted);
   }
 
   .error {
-    color: #b3261e;
+    color: var(--color-danger);
     margin: 0;
   }
 }

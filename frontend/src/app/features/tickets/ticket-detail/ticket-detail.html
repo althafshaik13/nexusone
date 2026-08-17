@@ -5,7 +5,7 @@
 } @else if (error()) {
   <p class="error">{{ error() }}</p>
 } @else if (ticket(); as t) {
-  <article class="ticket-detail">
+  <article class="ticket-detail page-fade-in">
     <header>
       <h2>{{ t.subject }}</h2>
       <span class="badge" [attr.data-status]="t.status">{{ t.status }}</span>
