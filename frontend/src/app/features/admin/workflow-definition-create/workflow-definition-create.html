@@ -1,0 +1,57 @@
+<a routerLink="/admin/workflow-definitions" class="back-link">&larr; Back to workflow definitions</a>
+
+<section class="workflow-definition-create">
+  <h2>New workflow definition</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Request type
+      <input type="text" formControlName="requestType" placeholder="e.g. EXPENSE_REPORT (SCREAMING_SNAKE_CASE)" />
+    </label>
+
+    <label>
+      Name
+      <input type="text" formControlName="name" placeholder="e.g. Expense Report Approval" />
+    </label>
+
+    <div class="steps" formArrayName="steps">
+      <h3>Approval steps</h3>
+
+      @for (step of steps.controls; track $index; let i = $index) {
+        <div class="step" [formGroupName]="i">
+          <div class="step-header">
+            <span class="step-order">Step {{ i + 1 }}</span>
+            @if (steps.length > 1) {
+              <button type="button" class="remove-step" (click)="removeStep(i)">Remove</button>
+            }
+          </div>
+
+          <label>
+            Approver type
+            <select formControlName="approverType">
+              <option value="MANAGER">Manager</option>
+              <option value="SPECIFIC_EMPLOYEE">Specific employee</option>
+            </select>
+          </label>
+
+          @if (step.get('approverType')?.value === 'SPECIFIC_EMPLOYEE') {
+            <label>
+              Approver employee ID
+              <input type="text" formControlName="approverEmployeeId" placeholder="Employee ID (UUID)" />
+            </label>
+          }
+        </div>
+      }
+
+      <button type="button" class="add-step" (click)="addStep()">Add step</button>
+    </div>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="form.invalid || submitting()">
+      {{ submitting() ? 'Creating…' : 'Create workflow definition' }}
+    </button>
+  </form>
+</section>

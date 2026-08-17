@@ -52,6 +52,11 @@ public class OrganizationService {
         return organizationRepository.findById(id).orElseThrow(() -> new OrganizationNotFoundException(id));
     }
 
+    @Transactional(readOnly = true)
+    public List<Organization> listOrganizations() {
+        return organizationRepository.findAllByOrderByNameAsc();
+    }
+
     @Transactional
     public Department createDepartment(UUID organizationId, CreateDepartmentRequest request) {
         getOrganization(organizationId);
@@ -93,6 +98,12 @@ public class OrganizationService {
         Employee employee = new Employee(organizationId, request.userId(), request.email(), request.jobTitle(),
                 request.departmentId(), request.teamId(), request.managerId());
         return employeeRepository.save(employee);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Employee> listEmployees(UUID organizationId) {
+        getOrganization(organizationId);
+        return employeeRepository.findByOrganizationId(organizationId);
     }
 
     @Transactional(readOnly = true)

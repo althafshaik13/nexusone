@@ -1,0 +1,33 @@
+<section class="organization-list">
+  <div class="toolbar">
+    <h2>Organizations</h2>
+    <div class="toolbar-actions">
+      <a class="new-organization" routerLink="/admin/organizations/new">New organization</a>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="hint">Loading organizations…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (organizations().length === 0) {
+    <p class="hint">No organizations found.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (organization of organizations(); track organization.id) {
+          <tr>
+            <td><a [routerLink]="['/admin/organizations', organization.id]">{{ organization.name }}</a></td>
+            <td>{{ organization.createdAt | date: 'medium' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

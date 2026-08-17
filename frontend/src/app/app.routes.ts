@@ -39,4 +39,38 @@ export const routes: Routes = [
     path: 'approvals',
     loadComponent: () => import('./features/workspace/approval-list/approval-list').then((m) => m.ApprovalList),
   },
+  {
+    path: 'admin/organizations',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/organization-list/organization-list').then((m) => m.OrganizationList),
+  },
+  {
+    path: 'admin/organizations/new',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/organization-create/organization-create').then((m) => m.OrganizationCreate),
+  },
+  {
+    path: 'admin/organizations/:id',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/organization-detail/organization-detail').then((m) => m.OrganizationDetail),
+  },
+  {
+    path: 'admin/workflow-definitions',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/workflow-definition-list/workflow-definition-list').then(
+        (m) => m.WorkflowDefinitionList,
+      ),
+  },
+  {
+    path: 'admin/workflow-definitions/new',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/workflow-definition-create/workflow-definition-create').then(
+        (m) => m.WorkflowDefinitionCreate,
+      ),
+  },
 ];

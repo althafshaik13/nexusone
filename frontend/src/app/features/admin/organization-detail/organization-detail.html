@@ -1,0 +1,165 @@
+<a routerLink="/admin/organizations" class="back-link">&larr; Back to organizations</a>
+
+@if (loading()) {
+  <p class="hint">Loading organization…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (organization(); as org) {
+  <article class="organization-detail">
+    <header>
+      <h2>{{ org.name }}</h2>
+      <span class="created">Created {{ org.createdAt | date: 'medium' }}</span>
+    </header>
+
+    <section class="departments">
+      <h3>Departments</h3>
+
+      @if (departments().length === 0) {
+        <p class="hint">No departments yet.</p>
+      } @else {
+        <ul class="department-list">
+          @for (department of departments(); track department.id) {
+            <li>
+              <div class="department-row" (click)="toggleDepartment(department.id)">
+                <span class="name">{{ department.name }}</span>
+                <span class="toggle">{{ expandedDepartmentId() === department.id ? '▾' : '▸' }}</span>
+              </div>
+
+              @if (expandedDepartmentId() === department.id) {
+                <div class="teams">
+                  @if (teamsLoading()) {
+                    <p class="hint">Loading teams…</p>
+                  } @else if (teamsByDepartment()[department.id]; as teams) {
+                    @if (teams.length === 0) {
+                      <p class="hint">No teams yet.</p>
+                    } @else {
+                      <ul class="team-list">
+                        @for (team of teams; track team.id) {
+                          <li>{{ team.name }}</li>
+                        }
+                      </ul>
+                    }
+                  }
+
+                  @if (teamError()) {
+                    <p class="error">{{ teamError() }}</p>
+                  }
+
+                  <div class="add-team">
+                    <input
+                      type="text"
+                      [value]="newTeamName()"
+                      (input)="onNewTeamNameInput($any($event.target).value)"
+                      placeholder="New team name"
+                    />
+                    <button
+                      type="button"
+                      (click)="addTeam(department.id)"
+                      [disabled]="!newTeamName().trim() || teamAdding()"
+                    >
+                      {{ teamAdding() ? 'Adding…' : 'Add team' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (departmentError()) {
+        <p class="error">{{ departmentError() }}</p>
+      }
+
+      <div class="add-department">
+        <input
+          type="text"
+          [value]="newDepartmentName()"
+          (input)="onNewDepartmentNameInput($any($event.target).value)"
+          placeholder="New department name"
+        />
+        <button
+          type="button"
+          (click)="addDepartment()"
+          [disabled]="!newDepartmentName().trim() || departmentAdding()"
+        >
+          {{ departmentAdding() ? 'Adding…' : 'Add department' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="employees">
+      <h3>Employees</h3>
+
+      @if (employees().length === 0) {
+        <p class="hint">No employees yet.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Job title</th>
+              <th>Department</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (employee of employees(); track employee.id) {
+              <tr>
+                <td>{{ employee.email }}</td>
+                <td>{{ employee.jobTitle || '—' }}</td>
+                <td>{{ departmentName(employee.departmentId) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <h4>New employee</h4>
+      <form [formGroup]="employeeForm" (ngSubmit)="submitEmployee()">
+        <label>
+          User ID
+          <input type="text" formControlName="userId" placeholder="Keycloak user ID (UUID)" />
+          <small class="helper">Keycloak user ID (sub claim) — find it by decoding that user's JWT.</small>
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email" placeholder="employee@example.com" />
+        </label>
+
+        <label>
+          Job title
+          <input type="text" formControlName="jobTitle" placeholder="Optional" />
+        </label>
+
+        <label>
+          Department
+          <select formControlName="departmentId">
+            <option value="">— none —</option>
+            @for (department of departments(); track department.id) {
+              <option [value]="department.id">{{ department.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Manager
+          <select formControlName="managerId">
+            <option value="">— none —</option>
+            @for (employee of employees(); track employee.id) {
+              <option [value]="employee.id">{{ employee.email }}</option>
+            }
+          </select>
+        </label>
+
+        @if (employeeError()) {
+          <p class="error">{{ employeeError() }}</p>
+        }
+
+        <button type="submit" [disabled]="employeeForm.invalid || employeeSubmitting()">
+          {{ employeeSubmitting() ? 'Creating…' : 'Create employee' }}
+        </button>
+      </form>
+    </section>
+  </article>
+}

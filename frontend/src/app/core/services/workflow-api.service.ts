@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Decision, WorkflowDefinitionResponse, WorkflowInstanceResponse } from '../models/workflow.model';
+import { ApproverType, Decision, WorkflowDefinitionResponse, WorkflowInstanceResponse } from '../models/workflow.model';
 
 export interface CreateWorkflowInstanceRequest {
   requestType: string;
@@ -16,6 +16,17 @@ export interface DecideStepRequest {
   comment: string | null;
 }
 
+export interface CreateWorkflowDefinitionStepRequest {
+  approverType: ApproverType;
+  approverEmployeeId: string | null;
+}
+
+export interface CreateWorkflowDefinitionRequest {
+  requestType: string;
+  name: string;
+  steps: CreateWorkflowDefinitionStepRequest[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class WorkflowApiService {
   private readonly http = inject(HttpClient);
@@ -24,6 +35,10 @@ export class WorkflowApiService {
 
   listDefinitions(): Observable<WorkflowDefinitionResponse[]> {
     return this.http.get<WorkflowDefinitionResponse[]>(this.definitionsUrl);
+  }
+
+  createDefinition(request: CreateWorkflowDefinitionRequest): Observable<WorkflowDefinitionResponse> {
+    return this.http.post<WorkflowDefinitionResponse>(this.definitionsUrl, request);
   }
 
   submitInstance(request: CreateWorkflowInstanceRequest): Observable<WorkflowInstanceResponse> {

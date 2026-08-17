@@ -42,6 +42,11 @@ public class OrganizationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping
+    public List<OrganizationResponse> list() {
+        return organizationService.listOrganizations().stream().map(OrganizationResponse::from).collect(Collectors.toList());
+    }
+
     @GetMapping("/{id}")
     public OrganizationResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         tenantAccessGuard.requireAccess(jwt, id);
@@ -66,5 +71,11 @@ public class OrganizationController {
                                                              @Valid @RequestBody CreateEmployeeRequest request) {
         EmployeeResponse response = EmployeeResponse.from(organizationService.createEmployee(id, request));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/employees")
+    public List<EmployeeResponse> listEmployees(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        tenantAccessGuard.requireAccess(jwt, id);
+        return organizationService.listEmployees(id).stream().map(EmployeeResponse::from).collect(Collectors.toList());
     }
 }

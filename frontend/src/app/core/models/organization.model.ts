@@ -16,3 +16,16 @@ export interface DepartmentResponse {
   name: string;
   createdAt: string;
 }
+
+export interface OrganizationResponse {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface TeamResponse {
+  id: string;
+  departmentId: string;
+  name: string;
+  createdAt: string;
+}
