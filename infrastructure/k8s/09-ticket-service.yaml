@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-service
+  namespace: nexusone
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ticket-service }
+  template:
+    metadata:
+      labels: { app: ticket-service }
+    spec:
+      containers:
+        - name: ticket-service
+          image: nexusone/ticket-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: EUREKA_URI
+              value: http://discovery-server:8761/eureka
+            - name: JWK_SET_URI
+              value: http://keycloak:8080/realms/nexusone/protocol/openid-connect/certs
+            - name: EXPECTED_ISSUER
+              value: http://localhost:8081/realms/nexusone
+            - name: KAFKA_BOOTSTRAP
+              value: kafka:9092
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticket-service
+  namespace: nexusone
+spec:
+  selector: { app: ticket-service }
+  ports:
+    - port: 8082
+      targetPort: 8082

@@ -1,0 +1,62 @@
+.my-profile {
+  header {
+    margin-bottom: 1rem;
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 1.5rem;
+    margin-bottom: 1.5rem;
+
+    dt {
+      color: #666;
+      font-weight: 600;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  .my-team {
+    h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #e2e2e2;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+
+      .email {
+        color: #1a1a1a;
+      }
+
+      .job-title {
+        color: #666;
+      }
+    }
+  }
+}
+
+.hint {
+  color: #666;
+}
+
+.error {
+  color: #b3261e;
+}

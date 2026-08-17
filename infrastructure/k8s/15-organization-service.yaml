@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: organization-service
+  namespace: nexusone
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: organization-service }
+  template:
+    metadata:
+      labels: { app: organization-service }
+    spec:
+      containers:
+        - name: organization-service
+          image: nexusone/organization-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: EUREKA_URI
+              value: http://discovery-server:8761/eureka
+            - name: JWK_SET_URI
+              value: http://keycloak:8080/realms/nexusone/protocol/openid-connect/certs
+            - name: EXPECTED_ISSUER
+              value: http://localhost:8081/realms/nexusone
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: organization-service
+  namespace: nexusone
+spec:
+  selector: { app: organization-service }
+  ports:
+    - port: 8084
+      targetPort: 8084

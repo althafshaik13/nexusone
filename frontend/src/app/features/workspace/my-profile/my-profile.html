@@ -1,0 +1,40 @@
+@if (loading()) {
+  <p class="hint">Loading your profile…</p>
+} @else if (notFound()) {
+  <p class="hint">You don't have an employee profile yet. Contact your administrator.</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (employee(); as e) {
+  <article class="my-profile">
+    <header>
+      <h2>My Profile</h2>
+    </header>
+
+    <dl>
+      <dt>Email</dt>
+      <dd>{{ e.email }}</dd>
+      <dt>Job title</dt>
+      <dd>{{ e.jobTitle || '—' }}</dd>
+      <dt>Employee ID</dt>
+      <dd>{{ e.id.slice(0, 8) }}…</dd>
+      <dt>Department</dt>
+      <dd>{{ departmentName() || '—' }}</dd>
+      <dt>Manager</dt>
+      <dd>{{ manager() ? manager()!.email : 'No manager on file' }}</dd>
+    </dl>
+
+    @if (directReports().length > 0) {
+      <section class="my-team">
+        <h3>My Team</h3>
+        <ul>
+          @for (report of directReports(); track report.id) {
+            <li>
+              <span class="email">{{ report.email }}</span>
+              <span class="job-title">{{ report.jobTitle || '—' }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </article>
+}

@@ -1,0 +1,42 @@
+<a routerLink="/requests" class="back-link">&larr; Back to requests</a>
+
+<section class="request-create">
+  <h2>New request</h2>
+
+  @if (loading()) {
+    <p class="hint">Loading request types…</p>
+  } @else if (loadError()) {
+    <p class="error">{{ loadError() }}</p>
+  } @else if (definitions().length === 0) {
+    <p class="hint">No request types are configured yet.</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Request type
+        <select formControlName="requestType">
+          @for (definition of definitions(); track definition.id) {
+            <option [value]="definition.requestType">{{ definition.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Title
+        <input type="text" formControlName="title" placeholder="Brief summary of your request" />
+      </label>
+
+      <label>
+        Description
+        <textarea formControlName="description" rows="5" placeholder="Any additional details"></textarea>
+      </label>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <button type="submit" [disabled]="form.invalid || submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit request' }}
+      </button>
+    </form>
+  }
+</section>

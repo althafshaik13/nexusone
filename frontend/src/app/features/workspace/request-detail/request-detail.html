@@ -1,0 +1,66 @@
+<a routerLink="/requests" class="back-link">&larr; Back to requests</a>
+
+@if (loading()) {
+  <p class="hint">Loading request…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (instance(); as r) {
+  <article class="request-detail">
+    <header>
+      <h2>{{ r.title }}</h2>
+      <span class="badge" [attr.data-status]="r.status">{{ r.status }}</span>
+    </header>
+
+    <dl>
+      <dt>Request type</dt>
+      <dd>{{ r.requestType }}</dd>
+      <dt>Created</dt>
+      <dd>{{ r.createdAt | date: 'medium' }}</dd>
+      <dt>Updated</dt>
+      <dd>{{ r.updatedAt | date: 'medium' }}</dd>
+    </dl>
+
+    <p class="description">{{ r.description || 'No description provided.' }}</p>
+
+    <section class="steps">
+      <h3>Approval steps</h3>
+      <ol>
+        @for (step of r.steps; track step.stepOrder) {
+          <li>
+            <div class="step-header">
+              <span class="step-order">Step {{ step.stepOrder }}</span>
+              <span class="approver-type">{{ step.approverType }}</span>
+              <span class="badge" [attr.data-status]="step.status">{{ step.status }}</span>
+            </div>
+
+            @if (step.decidedAt) {
+              <p class="decision-meta">
+                Decided {{ step.decidedAt | date: 'medium' }}
+                @if (step.comment) {
+                  &middot; {{ step.comment }}
+                }
+              </p>
+            }
+
+            @if (canDecide(step)) {
+              <div class="decide">
+                <textarea
+                  [value]="comment()"
+                  (input)="onCommentInput($any($event.target).value)"
+                  rows="2"
+                  placeholder="Optional comment"
+                ></textarea>
+                <div class="decide-actions">
+                  <button type="button" (click)="decide('APPROVE')" [disabled]="acting()">Approve</button>
+                  <button type="button" class="reject" (click)="decide('REJECT')" [disabled]="acting()">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            }
+          </li>
+        }
+      </ol>
+    </section>
+  </article>
+}

@@ -1,0 +1,37 @@
+<section class="request-list">
+  <div class="toolbar">
+    <h2>My Requests</h2>
+    <div class="toolbar-actions">
+      <a class="new-request" routerLink="/requests/new">New request</a>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="hint">Loading requests…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (requests().length === 0) {
+    <p class="hint">No requests found.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Request type</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (request of requests(); track request.id) {
+          <tr>
+            <td><a [routerLink]="['/requests', request.id]">{{ request.title }}</a></td>
+            <td>{{ request.requestType }}</td>
+            <td><span class="badge" [attr.data-status]="request.status">{{ request.status }}</span></td>
+            <td>{{ request.createdAt | date: 'medium' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

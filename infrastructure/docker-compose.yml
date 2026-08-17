@@ -92,6 +92,41 @@ services:
       discovery-server:
         condition: service_started
 
+  organization-service:
+    build:
+      context: ../organization-service
+    environment:
+      DB_HOST: postgres
+      EUREKA_URI: http://discovery-server:8761/eureka
+      JWK_SET_URI: http://keycloak:8080/realms/nexusone/protocol/openid-connect/certs
+      EXPECTED_ISSUER: http://localhost:8081/realms/nexusone
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+
+  workflow-service:
+    build:
+      context: ../workflow-service
+    environment:
+      DB_HOST: postgres
+      EUREKA_URI: http://discovery-server:8761/eureka
+      JWK_SET_URI: http://keycloak:8080/realms/nexusone/protocol/openid-connect/certs
+      EXPECTED_ISSUER: http://localhost:8081/realms/nexusone
+      ORGANIZATION_SERVICE_URL: http://organization-service:8084
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      organization-service:
+        condition: service_started
+
   gateway:
     build:
       context: ../gateway
@@ -104,6 +139,14 @@ services:
       - ticket-service
       - discovery-server
       - redis
+
+  frontend:
+    build:
+      context: ../frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - gateway
 
   notification-service:
     build:

@@ -17,4 +17,26 @@ export const routes: Routes = [
     path: 'tickets/:id',
     loadComponent: () => import('./features/tickets/ticket-detail/ticket-detail').then((m) => m.TicketDetail),
   },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/workspace/my-profile/my-profile').then((m) => m.MyProfile),
+  },
+  {
+    path: 'requests',
+    loadComponent: () => import('./features/workspace/request-list/request-list').then((m) => m.RequestList),
+  },
+  {
+    path: 'requests/new',
+    loadComponent: () =>
+      import('./features/workspace/request-create/request-create').then((m) => m.RequestCreate),
+  },
+  {
+    path: 'requests/:id',
+    loadComponent: () =>
+      import('./features/workspace/request-detail/request-detail').then((m) => m.RequestDetail),
+  },
+  {
+    path: 'approvals',
+    loadComponent: () => import('./features/workspace/approval-list/approval-list').then((m) => m.ApprovalList),
+  },
 ];
