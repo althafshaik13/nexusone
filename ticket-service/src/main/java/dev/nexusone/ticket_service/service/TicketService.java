@@ -67,17 +67,8 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<Ticket> listTickets(TicketStatus statusFilter, UUID customerIdFilter) {
-        if (statusFilter != null && customerIdFilter != null) {
-            return ticketRepository.findByStatusAndCustomerId(statusFilter, customerIdFilter);
-        }
-        if (statusFilter != null) {
-            return ticketRepository.findByStatus(statusFilter);
-        }
-        if (customerIdFilter != null) {
-            return ticketRepository.findByCustomerId(customerIdFilter);
-        }
-        return ticketRepository.findAll();
+    public List<Ticket> listTickets(TicketStatus statusFilter, UUID customerIdFilter, String q) {
+        return ticketRepository.search(statusFilter, customerIdFilter, q == null ? "" : q);
     }
 
     @Transactional

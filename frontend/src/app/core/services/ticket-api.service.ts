@@ -21,10 +21,13 @@ export class TicketApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/tickets`;
 
-  listTickets(status?: TicketStatus | ''): Observable<Ticket[]> {
+  listTickets(status?: TicketStatus | '', q?: string): Observable<Ticket[]> {
     let params = new HttpParams();
     if (status) {
       params = params.set('status', status);
+    }
+    if (q) {
+      params = params.set('q', q);
     }
     return this.http.get<Ticket[]>(this.baseUrl, { params });
   }

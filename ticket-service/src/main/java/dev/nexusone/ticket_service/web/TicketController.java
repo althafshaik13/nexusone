@@ -60,10 +60,11 @@ public class TicketController {
 
     @GetMapping
     public List<TicketResponse> listTickets(@AuthenticationPrincipal Jwt jwt,
-                                             @RequestParam(required = false) TicketStatus status) {
+                                             @RequestParam(required = false) TicketStatus status,
+                                             @RequestParam(required = false) String q) {
         AppUser currentUser = userResolver.resolve(jwt);
         UUID customerScope = currentUser.getRole() == UserRole.CUSTOMER ? currentUser.getId() : null;
-        return ticketService.listTickets(status, customerScope).stream().map(TicketResponse::from).collect(Collectors.toList());
+        return ticketService.listTickets(status, customerScope, q).stream().map(TicketResponse::from).collect(Collectors.toList());
     }
 
     @PostMapping("/{id}/assign")

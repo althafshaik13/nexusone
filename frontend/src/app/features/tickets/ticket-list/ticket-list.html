@@ -5,6 +5,13 @@
       @if (auth.hasRole('CUSTOMER')) {
         <a class="new-ticket" routerLink="/tickets/new">New ticket</a>
       }
+      <input
+        type="search"
+        class="search-input"
+        [value]="searchTerm()"
+        (input)="onSearchInput($any($event.target).value)"
+        placeholder="Search subject or description…"
+      />
       <select
         [value]="selectedStatus()"
         (change)="onStatusChange($any($event.target).value)"

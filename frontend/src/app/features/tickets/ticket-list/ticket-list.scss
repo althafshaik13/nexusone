@@ -15,6 +15,14 @@
       border: 1px solid #ccc;
     }
 
+    .search-input {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font: inherit;
+      width: 220px;
+    }
+
     .toolbar-actions {
       display: flex;
       align-items: center;

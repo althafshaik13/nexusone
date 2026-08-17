@@ -69,4 +69,41 @@ class TicketServiceIntegrationTest {
         List<TicketEvent> events = ticketEventRepository.findByTicketId(ticket.getId());
         assertTrue(events.size() >= 4);
     }
+
+    @Test
+    @Transactional
+    void searchMatchesSubjectOrDescriptionAndCombinesWithStatusFilter() {
+        UUID customerId = userService.createUser(new CreateUserRequest("searcher@nexusone.dev", UserRole.CUSTOMER)).getId();
+
+        Ticket byKafka = ticketService.createTicket(
+                new CreateTicketRequest("Kafka connection drops", "consumer keeps disconnecting", TicketPriority.HIGH), customerId);
+        Ticket byDescription = ticketService.createTicket(
+                new CreateTicketRequest("Billing issue", "invoice references kafka topic incorrectly", TicketPriority.LOW), customerId);
+        ticketService.createTicket(
+                new CreateTicketRequest("Unrelated ticket", "nothing to do with the search term", TicketPriority.LOW), customerId);
+
+        List<Ticket> byKeyword = ticketService.listTickets(null, null, "kafka");
+        assertTrue(byKeyword.stream().anyMatch(t -> t.getId().equals(byKafka.getId())));
+        assertTrue(byKeyword.stream().anyMatch(t -> t.getId().equals(byDescription.getId())));
+
+        ticketService.assignTicket(byKafka.getId(), userService.createUser(
+                new CreateUserRequest("agent2@nexusone.dev", UserRole.AGENT)).getId(), customerId);
+        List<Ticket> byKeywordAndStatus = ticketService.listTickets(TicketStatus.ASSIGNED, null, "kafka");
+        assertTrue(byKeywordAndStatus.stream().anyMatch(t -> t.getId().equals(byKafka.getId())));
+        assertTrue(byKeywordAndStatus.stream().allMatch(t -> t.getStatus() == TicketStatus.ASSIGNED));
+
+        assertTrue(ticketService.listTickets(null, null, "no-such-term-anywhere").isEmpty());
+    }
+
+    @Test
+    @Transactional
+    void listTicketsWithNoFiltersAtAllDoesNotFailOnNullSearchTerm() {
+        UUID customerId = userService.createUser(new CreateUserRequest("nofilter@nexusone.dev", UserRole.CUSTOMER)).getId();
+        Ticket ticket = ticketService.createTicket(
+                new CreateTicketRequest("Plain listing check", "no filters applied", TicketPriority.LOW), customerId);
+
+        List<Ticket> all = ticketService.listTickets(null, null, null);
+
+        assertTrue(all.stream().anyMatch(t -> t.getId().equals(ticket.getId())));
+    }
 }
