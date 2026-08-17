@@ -11,6 +11,11 @@ export interface CreateTicketRequest {
   priority: TicketPriority;
 }
 
+export interface CreateCommentRequest {
+  body: string;
+  internal: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TicketApiService {
   private readonly http = inject(HttpClient);
@@ -42,5 +47,9 @@ export class TicketApiService {
 
   transitionTicket(ticketId: string, targetStatus: TicketStatus): Observable<Ticket> {
     return this.http.post<Ticket>(`${this.baseUrl}/${ticketId}/transition`, { targetStatus });
+  }
+
+  addComment(ticketId: string, request: CreateCommentRequest): Observable<TicketComment> {
+    return this.http.post<TicketComment>(`${this.baseUrl}/${ticketId}/comments`, request);
   }
 }

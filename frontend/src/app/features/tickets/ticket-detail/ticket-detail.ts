@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { KeycloakService } from '../../../core/auth/keycloak.service';
 import { TicketApiService } from '../../../core/services/ticket-api.service';
+import { CopilotApiService } from '../../../core/services/copilot-api.service';
 import { Ticket, TicketComment, TicketStatus } from '../../../core/models/ticket.model';
 
 const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
@@ -24,6 +25,7 @@ const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
 })
 export class TicketDetail {
   private readonly ticketApi = inject(TicketApiService);
+  private readonly copilotApi = inject(CopilotApiService);
   protected readonly auth = inject(KeycloakService);
 
   readonly id = input.required<string>();
@@ -33,6 +35,14 @@ export class TicketDetail {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly acting = signal(false);
+
+  protected readonly aiLoading = signal(false);
+  protected readonly aiError = signal<string | null>(null);
+  protected readonly summary = signal<string | null>(null);
+
+  protected readonly replyText = signal('');
+  protected readonly sending = signal(false);
+  protected readonly sendError = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -86,6 +96,69 @@ export class TicketDetail {
         this.acting.set(false);
       },
       error: () => this.acting.set(false),
+    });
+  }
+
+  protected onReplyTextChange(value: string): void {
+    this.replyText.set(value);
+  }
+
+  protected suggestReply(): void {
+    const ticket = this.ticket();
+    if (!ticket || this.aiLoading()) {
+      return;
+    }
+    this.aiLoading.set(true);
+    this.aiError.set(null);
+    this.copilotApi.suggestReply(ticket.id).subscribe({
+      next: (response) => {
+        this.replyText.set(response.suggestion);
+        this.aiLoading.set(false);
+      },
+      error: () => {
+        this.aiError.set('Failed to generate a suggested reply.');
+        this.aiLoading.set(false);
+      },
+    });
+  }
+
+  protected summarizeTicket(): void {
+    const ticket = this.ticket();
+    if (!ticket || this.aiLoading()) {
+      return;
+    }
+    this.aiLoading.set(true);
+    this.aiError.set(null);
+    this.copilotApi.summarize(ticket.id).subscribe({
+      next: (response) => {
+        this.summary.set(response.summary);
+        this.aiLoading.set(false);
+      },
+      error: () => {
+        this.aiError.set('Failed to generate a summary.');
+        this.aiLoading.set(false);
+      },
+    });
+  }
+
+  protected sendReply(): void {
+    const ticket = this.ticket();
+    const body = this.replyText().trim();
+    if (!ticket || !body || this.sending()) {
+      return;
+    }
+    this.sending.set(true);
+    this.sendError.set(null);
+    this.ticketApi.addComment(ticket.id, { body, internal: false }).subscribe({
+      next: (comment) => {
+        this.comments.update((comments) => [...comments, comment]);
+        this.replyText.set('');
+        this.sending.set(false);
+      },
+      error: () => {
+        this.sendError.set('Failed to send reply.');
+        this.sending.set(false);
+      },
     });
   }
 

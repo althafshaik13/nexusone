@@ -56,5 +56,47 @@
         </ul>
       }
     </section>
+
+    @if (isAgent()) {
+      <section class="copilot">
+        <h3>AI Copilot</h3>
+        <div class="actions">
+          <button type="button" (click)="summarizeTicket()" [disabled]="aiLoading()">
+            {{ aiLoading() ? 'Summarizing…' : 'Summarize' }}
+          </button>
+          <button type="button" (click)="suggestReply()" [disabled]="aiLoading()">
+            {{ aiLoading() ? 'Drafting…' : 'Suggest reply' }}
+          </button>
+        </div>
+
+        @if (aiError()) {
+          <p class="error">{{ aiError() }}</p>
+        }
+
+        @if (summary(); as s) {
+          <div class="summary-box">
+            <p>{{ s }}</p>
+          </div>
+        }
+
+        <label>
+          Reply
+          <textarea
+            [value]="replyText()"
+            (input)="onReplyTextChange($any($event.target).value)"
+            rows="5"
+            placeholder="Write a reply, or use Suggest reply to draft one…"
+          ></textarea>
+        </label>
+
+        @if (sendError()) {
+          <p class="error">{{ sendError() }}</p>
+        }
+
+        <button type="button" (click)="sendReply()" [disabled]="!replyText().trim() || sending()">
+          {{ sending() ? 'Sending…' : 'Send reply' }}
+        </button>
+      </section>
+    }
   </article>
 }

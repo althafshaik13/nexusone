@@ -127,6 +127,33 @@ services:
       organization-service:
         condition: service_started
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  ai-copilot-service:
+    build:
+      context: ../ai-copilot-service
+    environment:
+      EUREKA_URI: http://discovery-server:8761/eureka
+      JWK_SET_URI: http://keycloak:8080/realms/nexusone/protocol/openid-connect/certs
+      EXPECTED_ISSUER: http://localhost:8081/realms/nexusone
+      TICKET_SERVICE_URL: http://ticket-service:8082
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+    ports:
+      - "8086:8086"
+    depends_on:
+      discovery-server:
+        condition: service_started
+      ticket-service:
+        condition: service_started
+      ollama:
+        condition: service_started
+
   gateway:
     build:
       context: ../gateway
@@ -194,3 +221,4 @@ volumes:
   pgdata:
   keycloak_data:
   mongodata:
+  ollama_data:

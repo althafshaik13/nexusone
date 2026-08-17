@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [gateway, ticket-service, notification-service, discovery-server, organization-service, workflow-service]
+        service: [gateway, ticket-service, notification-service, discovery-server, organization-service, workflow-service, ai-copilot-service]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
