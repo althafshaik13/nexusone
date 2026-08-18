@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { ApproverType, Decision, WorkflowDefinitionResponse, WorkflowInstanceResponse } from '../models/workflow.model';
+import {
+  ApproverType,
+  Decision,
+  WorkflowDefinitionResponse,
+  WorkflowInstanceResponse,
+  WorkflowStatsResponse,
+} from '../models/workflow.model';
 
 export interface CreateWorkflowInstanceRequest {
   requestType: string;
@@ -62,5 +68,9 @@ export class WorkflowApiService {
       `${this.instancesUrl}/${instanceId}/steps/${stepOrder}/decide`,
       request,
     );
+  }
+
+  getStats(): Observable<WorkflowStatsResponse> {
+    return this.http.get<WorkflowStatsResponse>(`${this.instancesUrl}/stats`);
   }
 }

@@ -3,6 +3,7 @@ package dev.nexusone.workflow_service.web;
 import dev.nexusone.workflow_service.dto.CreateWorkflowInstanceRequest;
 import dev.nexusone.workflow_service.dto.DecideStepRequest;
 import dev.nexusone.workflow_service.dto.WorkflowInstanceResponse;
+import dev.nexusone.workflow_service.dto.WorkflowStatsResponse;
 import dev.nexusone.workflow_service.exception.WorkflowInstanceNotFoundException;
 import dev.nexusone.workflow_service.service.WorkflowService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +32,11 @@ public class WorkflowInstanceController {
 
     public WorkflowInstanceController(WorkflowService workflowService) {
         this.workflowService = workflowService;
+    }
+
+    @GetMapping("/stats")
+    public WorkflowStatsResponse getStats() {
+        return workflowService.getStats();
     }
 
     @PostMapping

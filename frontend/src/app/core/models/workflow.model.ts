@@ -42,3 +42,9 @@ export interface WorkflowInstanceResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface WorkflowStatsResponse {
+  countByStatus: Record<string, number>;
+  countByRequestType: Record<string, number>;
+  averageDecisionHours: number | null;
+}

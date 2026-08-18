@@ -10,6 +10,7 @@ import dev.nexusone.ticket_service.dto.CreateCommentRequest;
 import dev.nexusone.ticket_service.dto.CreateTicketRequest;
 import dev.nexusone.ticket_service.dto.TicketEventResponse;
 import dev.nexusone.ticket_service.dto.TicketResponse;
+import dev.nexusone.ticket_service.dto.TicketStatsResponse;
 import dev.nexusone.ticket_service.dto.TransitionTicketRequest;
 import dev.nexusone.ticket_service.exception.TicketNotFoundException;
 import dev.nexusone.ticket_service.security.AuthenticatedUserResolver;
@@ -101,6 +102,11 @@ public class TicketController {
         Ticket ticket = ticketService.getTicket(id);
         requireVisible(currentUser, ticket);
         return ticketService.listComments(id).stream().map(CommentResponse::from).collect(Collectors.toList());
+    }
+
+    @GetMapping("/stats")
+    public TicketStatsResponse getStats() {
+        return ticketService.getStats();
     }
 
     @GetMapping("/{id}/events")

@@ -39,3 +39,8 @@ export interface TicketEvent {
   payloadJson: string | null;
   createdAt: string;
 }
+
+export interface TicketStatsResponse {
+  countByStatus: Record<string, number>;
+  averageResolutionHours: number | null;
+}

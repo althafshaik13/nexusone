@@ -128,4 +128,26 @@ class TicketServiceIntegrationTest {
             assertTrue(!events.get(i).getCreatedAt().isBefore(events.get(i - 1).getCreatedAt()));
         }
     }
+
+    @Test
+    @Transactional
+    void statsReflectTicketCountsByStatus() {
+        UUID customerId = userService.createUser(new CreateUserRequest("stats-customer@nexusone.dev", UserRole.CUSTOMER)).getId();
+        UUID agentId = userService.createUser(new CreateUserRequest("stats-agent@nexusone.dev", UserRole.AGENT)).getId();
+
+        Ticket resolved = ticketService.createTicket(
+                new CreateTicketRequest("Stats resolved", "will be resolved", TicketPriority.LOW), customerId);
+        ticketService.assignTicket(resolved.getId(), agentId, agentId);
+        ticketService.transitionStatus(resolved.getId(), TicketStatus.IN_PROGRESS, agentId);
+        ticketService.transitionStatus(resolved.getId(), TicketStatus.RESOLVED, agentId);
+
+        ticketService.createTicket(
+                new CreateTicketRequest("Stats created", "stays created", TicketPriority.LOW), customerId);
+
+        var stats = ticketService.getStats();
+
+        assertTrue(stats.countByStatus().getOrDefault("RESOLVED", 0L) >= 1);
+        assertTrue(stats.countByStatus().getOrDefault("CREATED", 0L) >= 1);
+        assertTrue(stats.averageResolutionHours() != null);
+    }
 }

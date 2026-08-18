@@ -13,6 +13,7 @@ import dev.nexusone.workflow_service.domain.WorkflowStepInstance;
 import dev.nexusone.workflow_service.dto.CreateWorkflowDefinitionRequest;
 import dev.nexusone.workflow_service.dto.CreateWorkflowInstanceRequest;
 import dev.nexusone.workflow_service.dto.DecideStepRequest;
+import dev.nexusone.workflow_service.dto.WorkflowStatsResponse;
 import dev.nexusone.workflow_service.exception.InvalidWorkflowStateException;
 import dev.nexusone.workflow_service.exception.NotTheApproverException;
 import dev.nexusone.workflow_service.exception.UnresolvableApproverException;
@@ -27,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -187,6 +190,20 @@ public class WorkflowService {
             }
         }
         return step;
+    }
+
+    @Transactional(readOnly = true)
+    public WorkflowStatsResponse getStats() {
+        Map<String, Long> countByStatus = new LinkedHashMap<>();
+        for (Object[] row : instanceRepository.countByStatus()) {
+            countByStatus.put(((InstanceStatus) row[0]).name(), (Long) row[1]);
+        }
+        Map<String, Long> countByRequestType = new LinkedHashMap<>();
+        for (Object[] row : instanceRepository.countByRequestType()) {
+            countByRequestType.put((String) row[0], (Long) row[1]);
+        }
+        Double averageDecisionHours = instanceRepository.averageDecisionHours();
+        return new WorkflowStatsResponse(countByStatus, countByRequestType, averageDecisionHours);
     }
 
     private void skipRemainingSteps(UUID instanceId, int fromStepOrderExclusive) {

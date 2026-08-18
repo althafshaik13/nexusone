@@ -1,0 +1,77 @@
+@if (loading()) {
+  <p class="hint">Loading analytics…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <section class="analytics page-fade-in">
+    <h2>Analytics</h2>
+
+    <div class="stat-cards">
+      <div class="stat-card">
+        <span class="stat-label">Avg. ticket resolution time</span>
+        <span class="stat-value">{{ formatHours(ticketStats()?.averageResolutionHours ?? null) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Avg. workflow decision time</span>
+        <span class="stat-value">{{ formatHours(workflowStats()?.averageDecisionHours ?? null) }}</span>
+      </div>
+    </div>
+
+    <section class="chart">
+      <h3>Tickets by status</h3>
+      @if (ticketStatusBars().length === 0) {
+        <p class="hint">No tickets yet.</p>
+      } @else {
+        <div class="bar-list">
+          @for (bar of ticketStatusBars(); track bar.label) {
+            <div class="bar-row">
+              <span class="badge" [attr.data-status]="bar.label">{{ bar.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="bar.percent"></div>
+              </div>
+              <span class="bar-count">{{ bar.count }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="chart">
+      <h3>Workflow requests by status</h3>
+      @if (workflowStatusBars().length === 0) {
+        <p class="hint">No workflow requests yet.</p>
+      } @else {
+        <div class="bar-list">
+          @for (bar of workflowStatusBars(); track bar.label) {
+            <div class="bar-row">
+              <span class="badge" [attr.data-status]="bar.label">{{ bar.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="bar.percent"></div>
+              </div>
+              <span class="bar-count">{{ bar.count }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="chart">
+      <h3>Workflow requests by type</h3>
+      @if (workflowRequestTypeBars().length === 0) {
+        <p class="hint">No workflow requests yet.</p>
+      } @else {
+        <div class="bar-list">
+          @for (bar of workflowRequestTypeBars(); track bar.label) {
+            <div class="bar-row">
+              <span class="type-label">{{ bar.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="bar.percent"></div>
+              </div>
+              <span class="bar-count">{{ bar.count }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </section>
+}

@@ -9,6 +9,7 @@ import dev.nexusone.ticket_service.domain.TicketStateMachine;
 import dev.nexusone.ticket_service.domain.TicketStatus;
 import dev.nexusone.ticket_service.dto.CreateCommentRequest;
 import dev.nexusone.ticket_service.dto.CreateTicketRequest;
+import dev.nexusone.ticket_service.dto.TicketStatsResponse;
 import dev.nexusone.ticket_service.exception.InvalidTicketTransitionException;
 import dev.nexusone.ticket_service.exception.TicketNotFoundException;
 import dev.nexusone.ticket_service.exception.UserNotFoundException;
@@ -131,6 +132,16 @@ public class TicketService {
     public List<TicketEvent> listEvents(UUID ticketId) {
         getTicket(ticketId);
         return ticketEventRepository.findByTicketIdOrderByCreatedAtAsc(ticketId);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketStatsResponse getStats() {
+        Map<String, Long> countByStatus = new LinkedHashMap<>();
+        for (Object[] row : ticketRepository.countByStatus()) {
+            countByStatus.put(((TicketStatus) row[0]).name(), (Long) row[1]);
+        }
+        Double averageResolutionHours = ticketRepository.averageResolutionHours();
+        return new TicketStatsResponse(countByStatus, averageResolutionHours);
     }
 
     private void recordEvent(UUID ticketId, String eventType, UUID actorId, Map<String, Object> payload) {

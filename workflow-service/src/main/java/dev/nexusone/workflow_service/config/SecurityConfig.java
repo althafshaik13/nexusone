@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/workflow-definitions").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/workflow-instances/stats").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

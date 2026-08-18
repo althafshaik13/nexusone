@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/tickets/*/assign").hasAnyRole("AGENT", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/tickets/*/transition").hasAnyRole("AGENT", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/tickets/*/events").hasAnyRole("AGENT", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/stats").hasAnyRole("AGENT", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

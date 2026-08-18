@@ -73,4 +73,9 @@ export const routes: Routes = [
         (m) => m.WorkflowDefinitionCreate,
       ),
   },
+  {
+    path: 'admin/analytics',
+    canActivate: [roleGuard('ADMIN')],
+    loadComponent: () => import('./features/admin/analytics/analytics').then((m) => m.Analytics),
+  },
 ];
