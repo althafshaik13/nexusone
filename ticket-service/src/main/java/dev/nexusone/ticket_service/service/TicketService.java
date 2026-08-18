@@ -127,6 +127,12 @@ public class TicketService {
         return ticketCommentRepository.findByTicketId(ticketId);
     }
 
+    @Transactional(readOnly = true)
+    public List<TicketEvent> listEvents(UUID ticketId) {
+        getTicket(ticketId);
+        return ticketEventRepository.findByTicketIdOrderByCreatedAtAsc(ticketId);
+    }
+
     private void recordEvent(UUID ticketId, String eventType, UUID actorId, Map<String, Object> payload) {
         String json;
         try {

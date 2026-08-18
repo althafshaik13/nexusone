@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface TicketEventRepository extends JpaRepository<TicketEvent, UUID> {
     List<TicketEvent> findByTicketId(UUID ticketId);
+    List<TicketEvent> findByTicketIdOrderByCreatedAtAsc(UUID ticketId);
 }

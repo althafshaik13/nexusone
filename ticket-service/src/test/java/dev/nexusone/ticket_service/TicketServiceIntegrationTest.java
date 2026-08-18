@@ -106,4 +106,26 @@ class TicketServiceIntegrationTest {
 
         assertTrue(all.stream().anyMatch(t -> t.getId().equals(ticket.getId())));
     }
+
+    @Test
+    @Transactional
+    void listEventsReturnsAuditTrailInChronologicalOrder() {
+        UUID customerId = userService.createUser(new CreateUserRequest("audit-customer@nexusone.dev", UserRole.CUSTOMER)).getId();
+        UUID agentId = userService.createUser(new CreateUserRequest("audit-agent@nexusone.dev", UserRole.AGENT)).getId();
+
+        Ticket ticket = ticketService.createTicket(
+                new CreateTicketRequest("Audit trail check", "verifying event ordering", TicketPriority.LOW), customerId);
+        ticketService.assignTicket(ticket.getId(), agentId, agentId);
+        ticketService.transitionStatus(ticket.getId(), TicketStatus.IN_PROGRESS, agentId);
+
+        List<TicketEvent> events = ticketService.listEvents(ticket.getId());
+
+        assertEquals(3, events.size());
+        assertEquals("TICKET_CREATED", events.get(0).getEventType());
+        assertEquals("TICKET_ASSIGNED", events.get(1).getEventType());
+        assertEquals("TICKET_STATUS_CHANGED", events.get(2).getEventType());
+        for (int i = 1; i < events.size(); i++) {
+            assertTrue(!events.get(i).getCreatedAt().isBefore(events.get(i - 1).getCreatedAt()));
+        }
+    }
 }

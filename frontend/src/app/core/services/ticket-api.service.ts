@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Ticket, TicketComment, TicketPriority, TicketStatus } from '../models/ticket.model';
+import { Ticket, TicketComment, TicketEvent, TicketPriority, TicketStatus } from '../models/ticket.model';
 
 export interface CreateTicketRequest {
   subject: string;
@@ -54,5 +54,9 @@ export class TicketApiService {
 
   addComment(ticketId: string, request: CreateCommentRequest): Observable<TicketComment> {
     return this.http.post<TicketComment>(`${this.baseUrl}/${ticketId}/comments`, request);
+  }
+
+  listEvents(ticketId: string): Observable<TicketEvent[]> {
+    return this.http.get<TicketEvent[]>(`${this.baseUrl}/${ticketId}/events`);
   }
 }

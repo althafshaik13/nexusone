@@ -30,3 +30,12 @@ export interface TicketComment {
   internal: boolean;
   createdAt: string;
 }
+
+export interface TicketEvent {
+  id: string;
+  ticketId: string;
+  eventType: string;
+  actorId: string;
+  payloadJson: string | null;
+  createdAt: string;
+}

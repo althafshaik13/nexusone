@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
 import { TicketApiService } from '../../../core/services/ticket-api.service';
 import { CopilotApiService } from '../../../core/services/copilot-api.service';
-import { Ticket, TicketComment, TicketStatus } from '../../../core/models/ticket.model';
+import { Ticket, TicketComment, TicketEvent, TicketStatus } from '../../../core/models/ticket.model';
 
 const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   CREATED: ['ASSIGNED'],
@@ -32,6 +32,7 @@ export class TicketDetail {
 
   protected readonly ticket = signal<Ticket | null>(null);
   protected readonly comments = signal<TicketComment[]>([]);
+  protected readonly events = signal<TicketEvent[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly acting = signal(false);
@@ -178,5 +179,10 @@ export class TicketDetail {
     this.ticketApi.listComments(ticketId).subscribe({
       next: (comments) => this.comments.set(comments),
     });
+    if (this.isAgent()) {
+      this.ticketApi.listEvents(ticketId).subscribe({
+        next: (events) => this.events.set(events),
+      });
+    }
   }
 }

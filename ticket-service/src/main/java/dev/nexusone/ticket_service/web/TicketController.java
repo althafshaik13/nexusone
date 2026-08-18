@@ -8,6 +8,7 @@ import dev.nexusone.ticket_service.dto.AssignTicketRequest;
 import dev.nexusone.ticket_service.dto.CommentResponse;
 import dev.nexusone.ticket_service.dto.CreateCommentRequest;
 import dev.nexusone.ticket_service.dto.CreateTicketRequest;
+import dev.nexusone.ticket_service.dto.TicketEventResponse;
 import dev.nexusone.ticket_service.dto.TicketResponse;
 import dev.nexusone.ticket_service.dto.TransitionTicketRequest;
 import dev.nexusone.ticket_service.exception.TicketNotFoundException;
@@ -100,6 +101,14 @@ public class TicketController {
         Ticket ticket = ticketService.getTicket(id);
         requireVisible(currentUser, ticket);
         return ticketService.listComments(id).stream().map(CommentResponse::from).collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}/events")
+    public List<TicketEventResponse> listEvents(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        AppUser currentUser = userResolver.resolve(jwt);
+        Ticket ticket = ticketService.getTicket(id);
+        requireVisible(currentUser, ticket);
+        return ticketService.listEvents(id).stream().map(TicketEventResponse::from).collect(Collectors.toList());
     }
 
     private void requireVisible(AppUser currentUser, Ticket ticket) {

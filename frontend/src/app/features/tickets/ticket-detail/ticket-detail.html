@@ -98,5 +98,23 @@
         </button>
       </section>
     }
+
+    @if (isAgent()) {
+      <section class="activity-log">
+        <h3>Activity Log</h3>
+        @if (events().length === 0) {
+          <p class="hint">No activity recorded yet.</p>
+        } @else {
+          <ul>
+            @for (event of events(); track event.id) {
+              <li>
+                <span class="event-type">{{ event.eventType }}</span>
+                <span class="event-meta">by {{ event.actorId }} &middot; {{ event.createdAt | date: 'medium' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
   </article>
 }
