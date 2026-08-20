@@ -2,6 +2,7 @@ package dev.nexusone.workflow_service.web;
 
 import dev.nexusone.workflow_service.dto.CreateWorkflowInstanceRequest;
 import dev.nexusone.workflow_service.dto.DecideStepRequest;
+import dev.nexusone.workflow_service.dto.WorkflowInstanceEventResponse;
 import dev.nexusone.workflow_service.dto.WorkflowInstanceResponse;
 import dev.nexusone.workflow_service.dto.WorkflowStatsResponse;
 import dev.nexusone.workflow_service.exception.WorkflowInstanceNotFoundException;
@@ -60,6 +61,16 @@ public class WorkflowInstanceController {
         var instance = workflowService.getInstance(id);
         var steps = workflowService.getStepInstances(id);
         return WorkflowInstanceResponse.from(instance, steps);
+    }
+
+    @GetMapping("/{id}/events")
+    public List<WorkflowInstanceEventResponse> listEvents(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        boolean isAdmin = hasAdminRole(jwt);
+        if (!workflowService.canView(id, userId, isAdmin)) {
+            throw new WorkflowInstanceNotFoundException(id);
+        }
+        return workflowService.listEvents(id).stream().map(WorkflowInstanceEventResponse::from).collect(Collectors.toList());
     }
 
     @GetMapping("/mine")

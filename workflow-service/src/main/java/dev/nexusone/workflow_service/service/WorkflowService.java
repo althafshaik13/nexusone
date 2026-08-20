@@ -8,6 +8,7 @@ import dev.nexusone.workflow_service.domain.InstanceStatus;
 import dev.nexusone.workflow_service.domain.StepStatus;
 import dev.nexusone.workflow_service.domain.WorkflowDefinition;
 import dev.nexusone.workflow_service.domain.WorkflowInstance;
+import dev.nexusone.workflow_service.domain.WorkflowInstanceEvent;
 import dev.nexusone.workflow_service.domain.WorkflowStep;
 import dev.nexusone.workflow_service.domain.WorkflowStepInstance;
 import dev.nexusone.workflow_service.dto.CreateWorkflowDefinitionRequest;
@@ -20,12 +21,15 @@ import dev.nexusone.workflow_service.exception.UnresolvableApproverException;
 import dev.nexusone.workflow_service.exception.WorkflowDefinitionNotFoundException;
 import dev.nexusone.workflow_service.exception.WorkflowInstanceNotFoundException;
 import dev.nexusone.workflow_service.repository.WorkflowDefinitionRepository;
+import dev.nexusone.workflow_service.repository.WorkflowInstanceEventRepository;
 import dev.nexusone.workflow_service.repository.WorkflowInstanceRepository;
 import dev.nexusone.workflow_service.repository.WorkflowStepInstanceRepository;
 import dev.nexusone.workflow_service.repository.WorkflowStepRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -41,17 +45,23 @@ public class WorkflowService {
     private final WorkflowInstanceRepository instanceRepository;
     private final WorkflowStepInstanceRepository stepInstanceRepository;
     private final OrganizationClient organizationClient;
+    private final WorkflowInstanceEventRepository instanceEventRepository;
+    private final ObjectMapper objectMapper;
 
     public WorkflowService(WorkflowDefinitionRepository definitionRepository,
                             WorkflowStepRepository stepRepository,
                             WorkflowInstanceRepository instanceRepository,
                             WorkflowStepInstanceRepository stepInstanceRepository,
-                            OrganizationClient organizationClient) {
+                            OrganizationClient organizationClient,
+                            WorkflowInstanceEventRepository instanceEventRepository,
+                            ObjectMapper objectMapper) {
         this.definitionRepository = definitionRepository;
         this.stepRepository = stepRepository;
         this.instanceRepository = instanceRepository;
         this.stepInstanceRepository = stepInstanceRepository;
         this.organizationClient = organizationClient;
+        this.instanceEventRepository = instanceEventRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -96,6 +106,8 @@ public class WorkflowService {
                     instance.getId(), step.getStepOrder(), step.getApproverType(),
                     resolved.employeeId(), resolved.userId()));
         }
+        recordEvent(instance.getId(), "WORKFLOW_SUBMITTED", requesterUserId,
+                Map.of("requestType", request.requestType(), "title", request.title()));
         return instance;
     }
 
@@ -176,17 +188,25 @@ public class WorkflowService {
         step.setDecidedAt(Instant.now());
         step.setComment(request.comment());
 
+        Map<String, Object> decisionPayload = new LinkedHashMap<>();
+        decisionPayload.put("stepOrder", stepOrder);
+        decisionPayload.put("comment", request.comment());
+
         if (request.decision() == Decision.REJECT) {
             step.setStatus(StepStatus.REJECTED);
             instance.setStatus(InstanceStatus.REJECTED);
             skipRemainingSteps(instanceId, stepOrder);
+            recordEvent(instanceId, "WORKFLOW_STEP_REJECTED", actingUserId, decisionPayload);
+            recordEvent(instanceId, "WORKFLOW_REJECTED", actingUserId, Map.of());
         } else {
             step.setStatus(StepStatus.APPROVED);
             boolean hasNext = stepInstanceRepository.findByWorkflowInstanceIdAndStepOrder(instanceId, stepOrder + 1).isPresent();
+            recordEvent(instanceId, "WORKFLOW_STEP_APPROVED", actingUserId, decisionPayload);
             if (hasNext) {
                 instance.setCurrentStepOrder(stepOrder + 1);
             } else {
                 instance.setStatus(InstanceStatus.APPROVED);
+                recordEvent(instanceId, "WORKFLOW_APPROVED", actingUserId, Map.of());
             }
         }
         return step;
@@ -212,6 +232,21 @@ public class WorkflowService {
                 s.setStatus(StepStatus.SKIPPED);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<WorkflowInstanceEvent> listEvents(UUID instanceId) {
+        return instanceEventRepository.findByWorkflowInstanceIdOrderByCreatedAtAsc(instanceId);
+    }
+
+    private void recordEvent(UUID instanceId, String eventType, UUID actorId, Map<String, Object> payload) {
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(payload);
+        } catch (JacksonException e) {
+            throw new IllegalStateException("Failed to serialize workflow instance event payload", e);
+        }
+        instanceEventRepository.save(new WorkflowInstanceEvent(instanceId, eventType, actorId, json));
     }
 
     private record ResolvedApprover(UUID employeeId, UUID userId) {

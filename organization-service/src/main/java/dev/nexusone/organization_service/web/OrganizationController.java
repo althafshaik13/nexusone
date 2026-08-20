@@ -5,6 +5,7 @@ import dev.nexusone.organization_service.dto.CreateEmployeeRequest;
 import dev.nexusone.organization_service.dto.CreateOrganizationRequest;
 import dev.nexusone.organization_service.dto.DepartmentResponse;
 import dev.nexusone.organization_service.dto.EmployeeResponse;
+import dev.nexusone.organization_service.dto.OrganizationEventResponse;
 import dev.nexusone.organization_service.dto.OrganizationResponse;
 import dev.nexusone.organization_service.security.TenantAccessGuard;
 import dev.nexusone.organization_service.service.OrganizationService;
@@ -37,8 +38,10 @@ public class OrganizationController {
     }
 
     @PostMapping
-    public ResponseEntity<OrganizationResponse> create(@Valid @RequestBody CreateOrganizationRequest request) {
-        OrganizationResponse response = OrganizationResponse.from(organizationService.createOrganization(request));
+    public ResponseEntity<OrganizationResponse> create(@AuthenticationPrincipal Jwt jwt,
+                                                          @Valid @RequestBody CreateOrganizationRequest request) {
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        OrganizationResponse response = OrganizationResponse.from(organizationService.createOrganization(request, actorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -54,9 +57,11 @@ public class OrganizationController {
     }
 
     @PostMapping("/{id}/departments")
-    public ResponseEntity<DepartmentResponse> createDepartment(@PathVariable UUID id,
+    public ResponseEntity<DepartmentResponse> createDepartment(@AuthenticationPrincipal Jwt jwt,
+                                                                 @PathVariable UUID id,
                                                                  @Valid @RequestBody CreateDepartmentRequest request) {
-        DepartmentResponse response = DepartmentResponse.from(organizationService.createDepartment(id, request));
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        DepartmentResponse response = DepartmentResponse.from(organizationService.createDepartment(id, request, actorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -67,9 +72,11 @@ public class OrganizationController {
     }
 
     @PostMapping("/{id}/employees")
-    public ResponseEntity<EmployeeResponse> createEmployee(@PathVariable UUID id,
+    public ResponseEntity<EmployeeResponse> createEmployee(@AuthenticationPrincipal Jwt jwt,
+                                                             @PathVariable UUID id,
                                                              @Valid @RequestBody CreateEmployeeRequest request) {
-        EmployeeResponse response = EmployeeResponse.from(organizationService.createEmployee(id, request));
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        EmployeeResponse response = EmployeeResponse.from(organizationService.createEmployee(id, request, actorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -77,5 +84,10 @@ public class OrganizationController {
     public List<EmployeeResponse> listEmployees(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         tenantAccessGuard.requireAccess(jwt, id);
         return organizationService.listEmployees(id).stream().map(EmployeeResponse::from).collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}/events")
+    public List<OrganizationEventResponse> listEvents(@PathVariable UUID id) {
+        return organizationService.listEvents(id).stream().map(OrganizationEventResponse::from).collect(Collectors.toList());
     }
 }

@@ -33,8 +33,11 @@ public class DepartmentController {
     }
 
     @PostMapping("/{id}/teams")
-    public ResponseEntity<TeamResponse> createTeam(@PathVariable UUID id, @Valid @RequestBody CreateTeamRequest request) {
-        TeamResponse response = TeamResponse.from(organizationService.createTeam(id, request));
+    public ResponseEntity<TeamResponse> createTeam(@AuthenticationPrincipal Jwt jwt,
+                                                     @PathVariable UUID id,
+                                                     @Valid @RequestBody CreateTeamRequest request) {
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        TeamResponse response = TeamResponse.from(organizationService.createTeam(id, request, actorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

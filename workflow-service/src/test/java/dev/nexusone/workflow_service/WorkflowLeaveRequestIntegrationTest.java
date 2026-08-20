@@ -5,6 +5,7 @@ import dev.nexusone.workflow_service.domain.ApproverType;
 import dev.nexusone.workflow_service.domain.Decision;
 import dev.nexusone.workflow_service.domain.InstanceStatus;
 import dev.nexusone.workflow_service.domain.WorkflowInstance;
+import dev.nexusone.workflow_service.domain.WorkflowInstanceEvent;
 import dev.nexusone.workflow_service.domain.WorkflowStepInstance;
 import dev.nexusone.workflow_service.dto.CreateWorkflowDefinitionRequest;
 import dev.nexusone.workflow_service.dto.CreateWorkflowInstanceRequest;
@@ -88,6 +89,16 @@ class WorkflowLeaveRequestIntegrationTest {
         workflowService.decide(instance.getId(), 2, hrUserId, new DecideStepRequest(Decision.APPROVE, "Approved"));
         WorkflowInstance afterStep2 = workflowService.getInstance(instance.getId());
         assertEquals(InstanceStatus.APPROVED, afterStep2.getStatus());
+
+        List<WorkflowInstanceEvent> events = workflowService.listEvents(instance.getId());
+        assertEquals(4, events.size());
+        assertEquals("WORKFLOW_SUBMITTED", events.get(0).getEventType());
+        assertEquals("WORKFLOW_STEP_APPROVED", events.get(1).getEventType());
+        assertEquals("WORKFLOW_STEP_APPROVED", events.get(2).getEventType());
+        assertEquals("WORKFLOW_APPROVED", events.get(3).getEventType());
+        for (int i = 1; i < events.size(); i++) {
+            assertTrue(!events.get(i).getCreatedAt().isBefore(events.get(i - 1).getCreatedAt()));
+        }
     }
 
     @Test
@@ -116,6 +127,12 @@ class WorkflowLeaveRequestIntegrationTest {
 
         WorkflowInstance rejected = workflowService.getInstance(instance.getId());
         assertEquals(InstanceStatus.REJECTED, rejected.getStatus());
+
+        List<WorkflowInstanceEvent> events = workflowService.listEvents(instance.getId());
+        assertEquals(3, events.size());
+        assertEquals("WORKFLOW_SUBMITTED", events.get(0).getEventType());
+        assertEquals("WORKFLOW_STEP_REJECTED", events.get(1).getEventType());
+        assertEquals("WORKFLOW_REJECTED", events.get(2).getEventType());
 
         var stats = workflowService.getStats();
         assertTrue(stats.countByStatus().getOrDefault("REJECTED", 0L) >= 1);

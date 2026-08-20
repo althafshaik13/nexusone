@@ -3,6 +3,7 @@ package dev.nexusone.organization_service.service;
 import dev.nexusone.organization_service.domain.Department;
 import dev.nexusone.organization_service.domain.Employee;
 import dev.nexusone.organization_service.domain.Organization;
+import dev.nexusone.organization_service.domain.OrganizationEvent;
 import dev.nexusone.organization_service.domain.Team;
 import dev.nexusone.organization_service.dto.CreateDepartmentRequest;
 import dev.nexusone.organization_service.dto.CreateEmployeeRequest;
@@ -13,13 +14,17 @@ import dev.nexusone.organization_service.exception.EmployeeNotFoundException;
 import dev.nexusone.organization_service.exception.OrganizationNotFoundException;
 import dev.nexusone.organization_service.repository.DepartmentRepository;
 import dev.nexusone.organization_service.repository.EmployeeRepository;
+import dev.nexusone.organization_service.repository.OrganizationEventRepository;
 import dev.nexusone.organization_service.repository.OrganizationRepository;
 import dev.nexusone.organization_service.repository.TeamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -31,20 +36,28 @@ public class OrganizationService {
     private final DepartmentRepository departmentRepository;
     private final TeamRepository teamRepository;
     private final EmployeeRepository employeeRepository;
+    private final OrganizationEventRepository organizationEventRepository;
+    private final ObjectMapper objectMapper;
 
     public OrganizationService(OrganizationRepository organizationRepository,
                                 DepartmentRepository departmentRepository,
                                 TeamRepository teamRepository,
-                                EmployeeRepository employeeRepository) {
+                                EmployeeRepository employeeRepository,
+                                OrganizationEventRepository organizationEventRepository,
+                                ObjectMapper objectMapper) {
         this.organizationRepository = organizationRepository;
         this.departmentRepository = departmentRepository;
         this.teamRepository = teamRepository;
         this.employeeRepository = employeeRepository;
+        this.organizationEventRepository = organizationEventRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
-    public Organization createOrganization(CreateOrganizationRequest request) {
-        return organizationRepository.save(new Organization(request.name()));
+    public Organization createOrganization(CreateOrganizationRequest request, UUID actorId) {
+        Organization organization = organizationRepository.save(new Organization(request.name()));
+        recordEvent(organization.getId(), "ORGANIZATION_CREATED", actorId, Map.of("name", request.name()));
+        return organization;
     }
 
     @Transactional(readOnly = true)
@@ -58,9 +71,12 @@ public class OrganizationService {
     }
 
     @Transactional
-    public Department createDepartment(UUID organizationId, CreateDepartmentRequest request) {
+    public Department createDepartment(UUID organizationId, CreateDepartmentRequest request, UUID actorId) {
         getOrganization(organizationId);
-        return departmentRepository.save(new Department(organizationId, request.name()));
+        Department department = departmentRepository.save(new Department(organizationId, request.name()));
+        recordEvent(organizationId, "DEPARTMENT_CREATED", actorId,
+                Map.of("departmentId", department.getId(), "name", request.name()));
+        return department;
     }
 
     @Transactional(readOnly = true)
@@ -77,11 +93,15 @@ public class OrganizationService {
     }
 
     @Transactional
-    public Team createTeam(UUID departmentId, CreateTeamRequest request) {
+    public Team createTeam(UUID departmentId, CreateTeamRequest request, UUID actorId) {
         if (!departmentRepository.existsById(departmentId)) {
             throw new DepartmentNotFoundException(departmentId);
         }
-        return teamRepository.save(new Team(departmentId, request.name()));
+        Team team = teamRepository.save(new Team(departmentId, request.name()));
+        UUID organizationId = resolveOrganizationIdForDepartment(departmentId);
+        recordEvent(organizationId, "TEAM_CREATED", actorId,
+                Map.of("teamId", team.getId(), "departmentId", departmentId, "name", request.name()));
+        return team;
     }
 
     @Transactional(readOnly = true)
@@ -93,11 +113,14 @@ public class OrganizationService {
     }
 
     @Transactional
-    public Employee createEmployee(UUID organizationId, CreateEmployeeRequest request) {
+    public Employee createEmployee(UUID organizationId, CreateEmployeeRequest request, UUID actorId) {
         getOrganization(organizationId);
         Employee employee = new Employee(organizationId, request.userId(), request.email(), request.jobTitle(),
                 request.departmentId(), request.teamId(), request.managerId());
-        return employeeRepository.save(employee);
+        Employee saved = employeeRepository.save(employee);
+        recordEvent(organizationId, "EMPLOYEE_CREATED", actorId,
+                Map.of("employeeId", saved.getId(), "email", request.email()));
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -135,5 +158,21 @@ public class OrganizationService {
             depth++;
         }
         return chain;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrganizationEvent> listEvents(UUID organizationId) {
+        getOrganization(organizationId);
+        return organizationEventRepository.findByOrganizationIdOrderByCreatedAtAsc(organizationId);
+    }
+
+    private void recordEvent(UUID organizationId, String eventType, UUID actorId, Map<String, Object> payload) {
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(payload);
+        } catch (JacksonException e) {
+            throw new IllegalStateException("Failed to serialize organization event payload", e);
+        }
+        organizationEventRepository.save(new OrganizationEvent(organizationId, eventType, actorId, json));
     }
 }
